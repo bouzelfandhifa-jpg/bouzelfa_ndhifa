@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="aeb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>بلّغ — بوزلفة نظيفة</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="report-page">
+    <header class="page-header">
+      <a href="/" class="back-btn">← رجوع</a>
+      <h2>بلّغ على حاجة</h2>
+    </header>
+
+    <form id="reportForm">
+      <div class="photo-section">
+        <div id="photoPreview" class="photo-preview">
+          <span class="photo-placeholder">📸</span>
+        </div>
+        <div class="photo-buttons">
+          <button type="button" id="cameraBtn" class="btn btn-secondary">📷 التقط صورة</button>
+          <button type="button" id="galleryBtn" class="btn btn-secondary">🖼️ اختار صورة</button>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+        <input type="file" id="galleryInput" accept="image/*" hidden>
+      </div>
+
+      <div class="field">
+        <label for="description">شنو راك تشوف؟ (إختياري)</label>
+        <textarea id="description" rows="3" placeholder="مثلاً: كيس ثنية في جنب الطريق قدام المحل الفلاني..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>المكان</label>
+        <div id="locationStatus" class="location-status">
+          <span>⏳ جلب الموقع...</span>
+        </div>
+        <div id="map" class="map-container"></div>
+        <input type="hidden" id="lat" name="lat">
+        <input type="hidden" id="lng" name="lng">
+        <input type="hidden" id="address" name="address">
+        <button type="button" id="retryLocationBtn" class="btn btn-small">📍 حدّد المكان مرة أخرى</button>
+      </div>
+
+      <button type="submit" id="submitBtn" class="cta-btn" disabled>
+        <span id="submitText">إرسل البلاغ</span>
+        <span id="submitSpinner" class="spinner" hidden></span>
+      </button>
+    </form>
+
+    <div id="successModal" class="modal" hidden>
+      <div class="modal-content">
+        <div class="modal-icon">✅</div>
+        <h3>شكراً على بلاغك!</h3>
+        <p>رقم المتابعة:</p>
+        <p class="report-id" id="reportId">---</p>
+        <p class="status-badge pending">في انتظار المعالجة</p>
+        <a href="/" class="cta-btn small">بلّغ على حاجة أخرى</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/report.js"></script>
+</body>
+</html>

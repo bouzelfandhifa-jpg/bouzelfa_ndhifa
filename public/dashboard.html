@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="aeb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>البلدية — بوزلفة نظيفة</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+</head>
+<body>
+  <main class="dashboard-page">
+    <header class="page-header">
+      <a href="/" class="back-btn">← رجوع</a>
+      <h2>🏛️ البلدية — البلاغات</h2>
+    </header>
+
+    <div class="stats-bar" id="statsBar">
+      <div class="stat pending">⏳ 0</div>
+      <div class="stat in-progress">🔄 0</div>
+      <div class="stat resolved">✅ 0</div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">الكل</button>
+      <button class="filter-btn" data-filter="pending">في انتظار</button>
+      <button class="filter-btn" data-filter="in_progress">قيد المعالجة</button>
+      <button class="filter-btn" data-filter="resolved">منجز</button>
+    </div>
+
+    <div id="map" class="dash-map"></div>
+
+    <div class="report-list" id="reportList">
+      <p class="loading">جاري التحميل...</p>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
