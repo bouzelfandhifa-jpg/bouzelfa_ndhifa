@@ -25,8 +25,12 @@ start_tunnel() {
 }
 
 get_url() {
-  for f in /tmp/cf_try1.log /tmp/cf_tunnel.log /tmp/cf_quick2.log /tmp/cf_new.log /tmp/cf_final4.log /tmp/cf_final3.log; do
-    local url=$(grep -oP 'https://[a-z-]+\.trycloudflare\.com' "$f" 2>/dev/null | tail -1)
+  local url
+  url=$(grep -oP 'https://[a-z-]+\.trycloudflare\.com' "$TUNNEL_LOG" 2>/dev/null | tail -1)
+  [ -n "$url" ] && echo "$url" && return
+  for f in /tmp/cloudflared_new.log /tmp/cloudflared.log /tmp/cf_*.log; do
+    [ -f "$f" ] || continue
+    url=$(grep -oP 'https://[a-z-]+\.trycloudflare\.com' "$f" 2>/dev/null | tail -1)
     [ -n "$url" ] && echo "$url" && return
   done
 }

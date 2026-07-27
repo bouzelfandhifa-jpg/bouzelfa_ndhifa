@@ -70,11 +70,27 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
+const uploadSingle = upload.single('photo')
+
+function handleUpload(req, res, next) {
+  uploadSingle(req, res, function (err) {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ error: 'الملف كبير جداً — الحد الأقصى 10 ميغا' })
+        return res.status(400).json({ error: 'خطأ في رفع الملف' })
+      }
+      if (err.message === 'نوع الصورة غير مدعوم') return res.status(400).json({ error: err.message })
+      return res.status(500).json({ error: 'حدث خطأ في الخدمة' })
+    }
+    next()
+  })
+}
+
 const rateLimit = {}
 const rateLimitWindow = 60 * 1000
 const maxRequests = 10
 
-app.post('/api/reports', upload.single('photo'), (req, res) => {
+app.post('/api/reports', handleUpload, (req, res) => {
   try {
     const ip = req.ip || req.socket.remoteAddress
     const now = Date.now()
