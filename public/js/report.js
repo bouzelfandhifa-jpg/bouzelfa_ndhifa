@@ -1,20 +1,24 @@
-const $ = id => document.getElementById(id)
-const cameraInput = $('cameraInput')
-const galleryInput = $('galleryInput')
-const cameraBtn = $('cameraBtn')
-const galleryBtn = $('galleryBtn')
-const photoPreview = $('photoPreview')
-const description = $('description')
-const latInput = $('lat')
-const lngInput = $('lng')
-const addressInput = $('address')
-const locationStatus = $('locationStatus')
-const submitBtn = $('submitBtn')
-const submitText = $('submitText')
-const submitSpinner = $('submitSpinner')
-const form = $('reportForm')
-const successModal = $('successModal')
-const reportIdSpan = $('reportId')
+function byId(id) { return document.getElementById(id) }
+
+const cameraInput = byId('cameraInput')
+const galleryInput = byId('galleryInput')
+const cameraBtn = byId('cameraBtn')
+const galleryBtn = byId('galleryBtn')
+const photoPreview = byId('photoPreview')
+const description = byId('description')
+const latInput = byId('lat')
+const lngInput = byId('lng')
+const addressInput = byId('address')
+const locationStatus = byId('locationStatus')
+const submitBtn = byId('submitBtn')
+const submitText = byId('submitText')
+const submitSpinner = byId('submitSpinner')
+const form = byId('reportForm')
+const successModal = byId('successModal')
+const reportIdSpan = byId('reportId')
+const heroIdDisplay = byId('heroIdDisplay')
+const heroIdSuccess = byId('heroIdSuccess')
+const shareBtn = byId('shareBtn')
 
 let selectedFile = null
 let map = null
@@ -31,40 +35,41 @@ function getHeroId() {
     localStorage.setItem('bouzelfa_hero_id', id)
   }
   heroId = id
-  const display = $('heroIdDisplay')
-  if (display) display.textContent = id
+  if (heroIdDisplay) heroIdDisplay.textContent = id
 }
 
 getHeroId()
 
 async function loadHeroStars() {
   try {
-    const res = await fetch(`/api/stars/${heroId}`)
+    const res = await fetch('/api/stars/' + heroId)
     const data = await res.json()
-    const badge = $('heroBadge')
-    if (data.total_stars > 0) {
-      const extra = document.createElement('span')
-      extra.style.cssText = 'font-size:.7rem;color:#92400e;margin-right:auto'
-      extra.textContent = '⭐' + data.total_stars
-      badge.appendChild(extra)
+    if (data && data.total_stars > 0) {
+      const badge = byId('heroBadge')
+      if (badge) {
+        const extra = document.createElement('span')
+        extra.style.cssText = 'font-size:.7rem;color:#92400e;margin-right:auto'
+        extra.textContent = '⭐' + data.total_stars
+        badge.appendChild(extra)
+      }
     }
   } catch (e) {}
 }
 loadHeroStars()
 
-cameraBtn.addEventListener('click', () => cameraInput.click())
-galleryBtn.addEventListener('click', () => galleryInput.click())
+cameraBtn && cameraBtn.addEventListener('click', function() { cameraInput.click() })
+galleryBtn && galleryBtn.addEventListener('click', function() { galleryInput.click() })
 
-cameraInput.addEventListener('change', handleFileSelect)
-galleryInput.addEventListener('change', handleFileSelect)
+cameraInput && cameraInput.addEventListener('change', handleFileSelect)
+galleryInput && galleryInput.addEventListener('change', handleFileSelect)
 
 function handleFileSelect(e) {
-  const file = e.target.files[0]
+  var file = e.target.files[0]
   if (!file) return
   selectedFile = file
-  const reader = new FileReader()
-  reader.onload = (ev) => {
-    photoPreview.innerHTML = `<img src="${ev.target.result}" alt="الصورة">`
+  var reader = new FileReader()
+  reader.onload = function(ev) {
+    photoPreview.innerHTML = '<img src="' + ev.target.result + '" alt="الصورة">'
     checkForm()
   }
   reader.readAsDataURL(file)
@@ -77,17 +82,17 @@ function getLocation() {
     return
   }
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const lat = pos.coords.latitude
-      const lng = pos.coords.longitude
+    function(pos) {
+      var lat = pos.coords.latitude
+      var lng = pos.coords.longitude
       latInput.value = lat
       lngInput.value = lng
-      locationStatus.innerHTML = `<span>✅ تم تحديد الموقع (${lat.toFixed(4)}, ${lng.toFixed(4)})</span>`
+      locationStatus.innerHTML = '<span>✅ تم تحديد الموقع (' + lat.toFixed(4) + ', ' + lng.toFixed(4) + ')</span>'
       reverseGeocode(lat, lng)
       initMap(lat, lng)
       checkForm()
     },
-    () => {
+    function() {
       locationStatus.innerHTML = '<span>⚠️ لم نتمكن من تحديد الموقع. يمكنك تعيينه يدوياً؟</span>'
       initMap(36.6833, 10.5833)
     },
@@ -96,24 +101,21 @@ function getLocation() {
 }
 
 function reverseGeocode(lat, lng) {
-  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`)
-    .then(r => r.json())
-    .then(data => {
-      const addr = data.display_name || ''
-      addressInput.value = addr
+  fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=ar')
+    .then(function(r) { return r.json() })
+    .then(function(data) {
+      if (data && data.display_name) addressInput.value = data.display_name
     })
-    .catch(() => {})
+    .catch(function() {})
 }
 
 function initMap(lat, lng) {
   if (!map) {
     map = L.map('map').setView([lat, lng], 15)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19
-    }).addTo(map)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map)
     marker = L.marker([lat, lng], { draggable: true }).addTo(map)
-    marker.on('dragend', () => {
-      const pos = marker.getLatLng()
+    marker.on('dragend', function() {
+      var pos = marker.getLatLng()
       latInput.value = pos.lat
       lngInput.value = pos.lng
       reverseGeocode(pos.lat, pos.lng)
@@ -126,13 +128,14 @@ function initMap(lat, lng) {
   map.invalidateSize()
 }
 
-document.getElementById('retryLocationBtn').addEventListener('click', getLocation)
+var retryBtn = byId('retryLocationBtn')
+retryBtn && retryBtn.addEventListener('click', getLocation)
 
 function checkForm() {
   submitBtn.disabled = !(selectedFile && latInput.value && lngInput.value)
 }
 
-form.addEventListener('submit', async (e) => {
+form && form.addEventListener('submit', async function(e) {
   e.preventDefault()
   if (!selectedFile) return
 
@@ -140,7 +143,7 @@ form.addEventListener('submit', async (e) => {
   submitText.hidden = true
   submitSpinner.hidden = false
 
-  const fd = new FormData()
+  var fd = new FormData()
   fd.append('photo', selectedFile)
   fd.append('hero_id', heroId)
   fd.append('description', description.value)
@@ -149,21 +152,19 @@ form.addEventListener('submit', async (e) => {
   fd.append('address', addressInput.value)
 
   try {
-    const res = await fetch('/api/reports', { method: 'POST', body: fd })
-    const data = await res.json()
-    if (res.ok) {
-      const rid = data.id || '---'
-      reportIdSpan.textContent = rid
-      const hs = $('heroIdSuccess')
-      if (hs) hs.textContent = data.hero_id || heroId || '---'
-      $('heroIdDisplay').textContent = heroId
-      const shareBtn = $('shareBtn')
+    var res = await fetch('/api/reports', { method: 'POST', body: fd })
+    var data = await res.json()
+    if (res.ok && data) {
+      var rid = data.id || ('r' + Math.random().toString(36).slice(2, 8))
+      if (reportIdSpan) reportIdSpan.textContent = rid
+      if (heroIdSuccess) heroIdSuccess.textContent = data.hero_id || heroId || 'بطل'
+      if (heroIdDisplay) heroIdDisplay.textContent = heroId
       if (shareBtn) {
-        shareBtn.onclick = () => shareReport(rid, data.hero_id || heroId)
+        shareBtn.onclick = function() { shareReport(rid, data.hero_id || heroId) }
       }
       successModal.hidden = false
     } else {
-      alert(data.error || 'حدث خطأ')
+      alert((data && data.error) || 'حدث خطأ')
       submitBtn.disabled = false
       submitText.hidden = false
       submitSpinner.hidden = true
@@ -176,14 +177,15 @@ form.addEventListener('submit', async (e) => {
   }
 })
 
-// Share feature
 function shareReport(id, hero) {
-  const url = window.location.origin + '/dashboard.html?id=' + id
-  const text = `🦸 ${hero}\n📸 بلغ جديد في بوزلفة نظيفة\n🔗 ${url}\n#بوزلفة_نظيفة`
+  var url = window.location.origin + '/dashboard.html?id=' + id
+  var text = '🦸 ' + hero + '\n📸 بلغ جديد في بوزلفة نظيفة\n🔗 ' + url + '\n#بوزلفة_نظيفة'
   if (navigator.share) {
-    navigator.share({ title: 'بوزلفة نظيفة', text })
+    navigator.share({ title: 'بوزلفة نظيفة', text: text })
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() { alert('✅ تم نسخ النص للمشاركة') })
   } else {
-    navigator.clipboard.writeText(text).then(() => alert('✅ تم نسخ النص للمشاركة'))
+    prompt('انسخ الرابط:', url)
   }
 }
 
