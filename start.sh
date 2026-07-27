@@ -38,7 +38,7 @@ show_status() {
   echo "═══════════════════════════════════════"
   echo ""
   pgrep -f "node.*server.js" > /dev/null 2>&1 && echo "  📡 Server:  ✅ Running" || echo "  📡 Server:  ❌ Stopped"
-  pgrep -f "cloudflared tunnel" > /dev/null 2>&1 && echo "  🔗 Tunnel:  ✅ Running" || echo "  🔗 Tunnel:  ❌ Stopped"
+  pgrep -f "cloudflared.*tunnel" > /dev/null 2>&1 && echo "  🔗 Tunnel:  ✅ Running" || echo "  🔗 Tunnel:  ❌ Stopped"
   echo ""
   URL=$(get_url)
   if [ -n "$URL" ]; then
@@ -52,7 +52,7 @@ show_status() {
 watch() {
   while true; do
     pgrep -f "node.*server.js" > /dev/null 2>&1 || start_server
-    pgrep -f "cloudflared tunnel" > /dev/null 2>&1 || start_tunnel
+    pgrep -f "cloudflared.*tunnel" > /dev/null 2>&1 || start_tunnel
     sleep 60
   done
 }
