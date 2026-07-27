@@ -32,26 +32,56 @@ const storage = multer.diskStorage({
 })
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (allowed.includes(file.mimetype)) cb(null, true)
+    else cb(new Error('نوع الصورة غير مدعوم'), false)
+  }
 })
 
 app.use(express.json())
+
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('X-XSS-Protection', '0')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('Permissions-Policy', 'geolocation=(self), camera=(self)')
+  res.removeHeader('X-Powered-By')
+  next()
+})
+
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
+const rateLimit = {}
+const rateLimitWindow = 60 * 1000
+const maxRequests = 10
+
 app.post('/api/reports', upload.single('photo'), (req, res) => {
   try {
+    const ip = req.ip || req.socket.remoteAddress
+    const now = Date.now()
+    if (!rateLimit[ip] || now - rateLimit[ip].start > rateLimitWindow) rateLimit[ip] = { start: now, count: 0 }
+    rateLimit[ip].count++
+    if (rateLimit[ip].count > maxRequests) return res.status(429).json({ error: 'طلبات كثيرة — حاول لاحقاً' })
+
     if (!req.file) return res.status(400).json({ error: 'الصورة مطلوبة' })
     const id = crypto.randomUUID().slice(0, 8)
-    const { description, lat, lng, address } = req.body
+    const description = (req.body.description || '').replace(/[<>]/g, '')
+    const lat = Math.min(90, Math.max(-90, parseFloat(req.body.lat) || 0))
+    const lng = Math.min(180, Math.max(-180, parseFloat(req.body.lng) || 0))
+    const address = (req.body.address || '').replace(/[<>]/g, '')
+    if (!lat || !lng) return res.status(400).json({ error: 'الموقع غير صحيح' })
     const stmt = db.prepare(
       'INSERT INTO reports (id, photo, description, lat, lng, address, status) VALUES (?, ?, ?, ?, ?, ?, ?)'
     )
-    stmt.run(id, req.file.filename, description || '', parseFloat(lat) || 0, parseFloat(lng) || 0, address || '', 'pending')
+    stmt.run(id, req.file.filename, description, lat, lng, address, 'pending')
     res.status(201).json({ id, status: 'pending' })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: 'صرت مشكلة في الخدمة' })
+    res.status(500).json({ error: 'حدث خطأ في الخدمة' })
   }
 })
 
@@ -75,11 +105,11 @@ app.get('/api/reports', (req, res) => {
 app.patch('/api/reports/:id/status', (req, res) => {
   const { status } = req.body
   if (!['pending', 'in_progress', 'resolved'].includes(status)) {
-    return res.status(400).json({ error: 'حالة مش صحيحة' })
+    return res.status(400).json({ error: 'حالة غير صحيحة' })
   }
   const stmt = db.prepare("UPDATE reports SET status = ? WHERE id = ?")
   const result = stmt.run(status, req.params.id)
-  if (result.changes === 0) return res.status(404).json({ error: 'البلاغ مش موجود' })
+  if (result.changes === 0) return res.status(404).json({ error: 'البلاغ غير موجود' })
   res.json({ success: true })
 })
 
@@ -91,5 +121,5 @@ app.get('/api/reports/stats', (req, res) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`بوزلفة نظيفة شغّالة على http://localhost:${PORT}`)
+    console.log(`بوزلفة نظيفة — تعمل على http://localhost:${PORT}`)
 })

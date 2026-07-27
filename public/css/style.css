@@ -5,6 +5,8 @@
   --green-light: #e8f5e9;
   --green-dark: #1b5e20;
   --orange: #f57c00;
+  --orange-light: #fff3e0;
+  --orange-dark: #e65100;
   --red: #dc2626;
   --bg: #f0faf0;
   --card: #ffffff;
@@ -30,10 +32,8 @@ main { padding: 20px; max-width: 480px; margin: 0 auto; }
 .landing { display: flex; align-items: center; min-height: 100dvh; }
 .landing main { width: 100%; text-align: center; }
 .hero { margin-bottom: 16px; }
-.logo { font-size: 4rem; line-height: 1; margin-bottom: 4px; }
-h1 { font-size: 2rem; font-weight: 800; }
-h1 .highlight { color: var(--green); }
-.subtitle { color: var(--green-dark); font-weight: 600; font-size: .95rem; }
+.main-logo { display: block; margin: 0 auto 8px; max-width: 180px; height: auto; }
+.subtitle { color: var(--orange-dark); font-weight: 600; font-size: .95rem; }
 .desc { font-size: 1rem; color: var(--text-light); margin: 20px 0; line-height: 1.7; }
 .desc strong { color: var(--text); }
 
@@ -47,13 +47,14 @@ h1 .highlight { color: var(--green); }
   box-shadow: var(--shadow);
 }
 .step-icon { font-size: 1.5rem; }
-.step-arrow { color: var(--green); font-size: 1.2rem; font-weight: bold; }
+.step-arrow { color: var(--orange); font-size: 1.2rem; font-weight: bold; }
 
 .cta-btn {
   display: block; width: 100%; padding: 18px; font-size: 1.2rem; font-weight: 800;
-  background: var(--green); color: #fff; border: none; border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+  color: #fff; border: none; border-radius: var(--radius);
   cursor: pointer; text-decoration: none; text-align: center;
-  box-shadow: 0 4px 14px rgba(45,125,70,.35);
+  box-shadow: 0 4px 14px rgba(245,124,0,.35);
   transition: transform .1s, box-shadow .1s;
 }
 .cta-btn:active { transform: scale(.97); }
@@ -65,18 +66,51 @@ h1 .highlight { color: var(--green); }
   display: flex; align-items: center; justify-content: center; gap: 8px;
   background: var(--card); border-radius: var(--radius); padding: 14px;
   text-decoration: none; color: var(--text); box-shadow: var(--shadow);
-  font-weight: 600;
+  font-weight: 600; border: 1px solid var(--orange-light);
 }
+.link-card:hover { border-color: var(--orange); }
 .link-icon { font-size: 1.3rem; }
 
 footer { margin-top: 32px; color: var(--text-light); font-size: .75rem; }
 
+/* ===== COMMUNITY MESSAGE ===== */
+.community-message { margin: 20px 0; }
+.message-card {
+  background: linear-gradient(135deg, var(--green-light), #d0ebd4);
+  border: 2px solid var(--green);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(45,125,70,.15);
+}
+.message-quote {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.message-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--green-dark);
+  margin-bottom: 10px;
+}
+.message-body {
+  font-size: .92rem;
+  color: #1a3a1a;
+  line-height: 1.7;
+}
+.message-body strong { color: var(--orange-dark); }
+
 /* ===== PAGE HEADER ===== */
 .page-header {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
 }
-.back-btn { color: var(--green); text-decoration: none; font-weight: 600; font-size: .95rem; }
-.page-header h2 { font-size: 1.2rem; }
+.back-btn { color: var(--orange); text-decoration: none; font-weight: 600; font-size: .95rem; }
+.back-btn:hover { color: var(--orange-dark); }
+.small-logo { flex-shrink: 0; border-radius: 8px; }
+.page-header h2 { font-size: 1.15rem; }
 
 /* ===== REPORT FORM ===== */
 .photo-section { margin-bottom: 20px; }
@@ -89,8 +123,9 @@ footer { margin-top: 32px; color: var(--text-light); font-size: .75rem; }
 .photo-placeholder { font-size: 3rem; opacity: .4; }
 .photo-buttons { display: flex; gap: 10px; }
 .btn-secondary {
-  flex: 1; padding: 14px; border: 2px dashed var(--green); background: var(--green-light);
-  border-radius: var(--radius); font-size: .9rem; font-weight: 600; color: var(--green-dark);
+  flex: 1; padding: 14px; border: 2px dashed var(--orange);
+  background: var(--orange-light);
+  border-radius: var(--radius); font-size: .9rem; font-weight: 600; color: var(--orange-dark);
   cursor: pointer;
 }
 
@@ -100,12 +135,12 @@ footer { margin-top: 32px; color: var(--text-light); font-size: .75rem; }
   width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: var(--radius);
   font-size: .9rem; resize: vertical; font-family: inherit;
 }
-.field textarea:focus { outline: none; border-color: var(--green); }
+.field textarea:focus { outline: none; border-color: var(--orange); }
 
 .location-status { font-size: .85rem; margin-bottom: 8px; color: var(--text-light); }
 .map-container { height: 200px; border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
 .btn-small {
-  padding: 10px 16px; background: var(--green-light); color: var(--green-dark);
+  padding: 10px 16px; background: var(--orange-light); color: var(--orange-dark);
   border: none; border-radius: 10px; font-size: .8rem; font-weight: 600; cursor: pointer;
 }
 
@@ -128,7 +163,7 @@ footer { margin-top: 32px; color: var(--text-light); font-size: .75rem; }
 .modal-icon { font-size: 3rem; margin-bottom: 8px; }
 .modal-content h3 { font-size: 1.3rem; margin-bottom: 12px; }
 .report-id {
-  font-size: 2rem; font-weight: 800; color: var(--green); letter-spacing: 4px; margin: 8px 0 12px;
+  font-size: 2rem; font-weight: 800; color: var(--orange); letter-spacing: 4px; margin: 8px 0 12px;
 }
 .status-badge {
   display: inline-block; padding: 6px 16px; border-radius: 20px;
@@ -157,7 +192,7 @@ footer { margin-top: 32px; color: var(--text-light); font-size: .75rem; }
   padding: 8px 16px; border: none; border-radius: 20px; font-size: .8rem;
   font-weight: 600; cursor: pointer; background: #e0e0e0; color: var(--text-light); white-space: nowrap;
 }
-.filter-btn.active { background: var(--green); color: #fff; }
+.filter-btn.active { background: var(--orange); color: #fff; }
 
 .dash-map { height: 250px; border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
 
