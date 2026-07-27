@@ -15,7 +15,7 @@ start_server() {
 
 start_tunnel() {
   local logfile="$TUNNEL_LOG"
-  if pgrep -f "cloudflared tunnel" > /dev/null 2>&1; then
+  if pgrep -f "cloudflared.*tunnel" > /dev/null 2>&1; then
     echo "✅ Tunnel already running"
   else
     nohup /tmp/cloudflared tunnel --url http://localhost:3456 --no-autoupdate > "$logfile" 2>&1 &
@@ -133,7 +133,7 @@ share() {
 
 case "${1:-start}" in
   start|restart)
-    pkill -f "cloudflared tunnel" 2>/dev/null
+    pkill -f "cloudflared.*tunnel" 2>/dev/null
     start_server
     start_tunnel
     echo ""
@@ -142,7 +142,7 @@ case "${1:-start}" in
     show_status
     ;;
   stop)
-    pkill -f "cloudflared tunnel" 2>/dev/null
+    pkill -f "cloudflared.*tunnel" 2>/dev/null
     pkill -f "node.*server.js" 2>/dev/null
     echo "Stopped."
     ;;
