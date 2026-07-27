@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: bouzelfa_ndhifa
+    runtime: node
+    repo: https://github.com/bouzelfandhifa-jpg/bouzelfa_ndhifa
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000
+    region: frankfurt
+    buildCommand: npm ci --omit=dev --ignore-scripts
+    startCommand: node server.js
+    healthCheckPath: /
+    numInstances: 1
