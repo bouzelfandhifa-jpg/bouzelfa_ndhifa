@@ -1,6 +1,6 @@
 #!/bin/bash
 DIR="/home/hazem/bouzelfa_ndhifa"
-TUNNEL_LOG="/tmp/cf_tunnel.log"
+TUNNEL_LOG="/tmp/cf_quick2.log"
 SERVER_LOG="/tmp/server_bouzelfa.log"
 
 start_server() {
@@ -25,7 +25,7 @@ start_tunnel() {
 }
 
 get_url() {
-  for f in /tmp/cf_tunnel.log /tmp/cf_final3.log /tmp/cf2.log /tmp/cf3.log; do
+  for f in /tmp/cf_quick2.log /tmp/cf_final4.log /tmp/cf_tunnel.log /tmp/cf_final3.log /tmp/cf2.log /tmp/cf3.log; do
     local url=$(grep -oP 'https://[a-z-]+\.trycloudflare\.com' "$f" 2>/dev/null | tail -1)
     [ -n "$url" ] && echo "$url" && return
   done
