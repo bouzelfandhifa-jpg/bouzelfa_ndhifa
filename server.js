@@ -81,7 +81,7 @@ app.post('/api/reports', upload.single('photo'), (req, res) => {
       'INSERT INTO reports (id, photo, description, lat, lng, address, status, hero_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     )
     stmt.run(id, req.file.filename, description, lat, lng, address, 'pending', hero_id)
-    res.status(201).json({ id, hero_id, status: 'pending' })
+    res.status(201).json({ id, hero_id: hero_id || '', status: 'pending' })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'حدث خطأ في الخدمة' })

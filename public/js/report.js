@@ -1,19 +1,20 @@
-const photoInput = document.getElementById('photoInput')
-const galleryInput = document.getElementById('galleryInput')
-const cameraBtn = document.getElementById('cameraBtn')
-const galleryBtn = document.getElementById('galleryBtn')
-const photoPreview = document.getElementById('photoPreview')
-const description = document.getElementById('description')
-const latInput = document.getElementById('lat')
-const lngInput = document.getElementById('lng')
-const addressInput = document.getElementById('address')
-const locationStatus = document.getElementById('locationStatus')
-const submitBtn = document.getElementById('submitBtn')
-const submitText = document.getElementById('submitText')
-const submitSpinner = document.getElementById('submitSpinner')
-const form = document.getElementById('reportForm')
-const successModal = document.getElementById('successModal')
-const reportIdSpan = document.getElementById('reportId')
+const $ = id => document.getElementById(id)
+const photoInput = $('photoInput')
+const galleryInput = $('galleryInput')
+const cameraBtn = $('cameraBtn')
+const galleryBtn = $('galleryBtn')
+const photoPreview = $('photoPreview')
+const description = $('description')
+const latInput = $('lat')
+const lngInput = $('lng')
+const addressInput = $('address')
+const locationStatus = $('locationStatus')
+const submitBtn = $('submitBtn')
+const submitText = $('submitText')
+const submitSpinner = $('submitSpinner')
+const form = $('reportForm')
+const successModal = $('successModal')
+const reportIdSpan = $('reportId')
 
 let selectedFile = null
 let map = null
@@ -30,7 +31,8 @@ function getHeroId() {
     localStorage.setItem('bouzelfa_hero_id', id)
   }
   heroId = id
-  document.getElementById('heroIdDisplay').textContent = id
+  const display = $('heroIdDisplay')
+  if (display) display.textContent = id
 }
 
 getHeroId()
@@ -135,8 +137,15 @@ form.addEventListener('submit', async (e) => {
     const res = await fetch('/api/reports', { method: 'POST', body: fd })
     const data = await res.json()
     if (res.ok) {
-      reportIdSpan.textContent = data.id
-      document.getElementById('heroIdSuccess').textContent = data.hero_id || heroId
+      const rid = data.id || '---'
+      reportIdSpan.textContent = rid
+      const hs = $('heroIdSuccess')
+      if (hs) hs.textContent = data.hero_id || heroId || '---'
+      $('heroIdDisplay').textContent = heroId
+      const shareBtn = $('shareBtn')
+      if (shareBtn) {
+        shareBtn.onclick = () => shareReport(rid, data.hero_id || heroId)
+      }
       successModal.hidden = false
     } else {
       alert(data.error || 'حدث خطأ')
@@ -144,12 +153,23 @@ form.addEventListener('submit', async (e) => {
       submitText.hidden = false
       submitSpinner.hidden = true
     }
-  } catch {
+  } catch (err) {
     alert('⚠️ لم نتمكن من إرسال البلاغ. تحقق من الاتصال.')
     submitBtn.disabled = false
     submitText.hidden = false
     submitSpinner.hidden = true
   }
 })
+
+// Share feature
+function shareReport(id, hero) {
+  const url = window.location.origin + '/dashboard.html?id=' + id
+  const text = `🦸 ${hero}\n📸 بلغ جديد في بوزلفة نظيفة\n🔗 ${url}\n#بوزلفة_نظيفة`
+  if (navigator.share) {
+    navigator.share({ title: 'بوزلفة نظيفة', text })
+  } else {
+    navigator.clipboard.writeText(text).then(() => alert('✅ تم نسخ النص للمشاركة'))
+  }
+}
 
 getLocation()

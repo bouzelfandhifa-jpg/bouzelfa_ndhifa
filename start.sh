@@ -25,7 +25,7 @@ start_tunnel() {
 }
 
 get_url() {
-  for f in /tmp/cf_quick2.log /tmp/cf_final4.log /tmp/cf_tunnel.log /tmp/cf_final3.log /tmp/cf2.log /tmp/cf3.log; do
+  for f in /tmp/cf_try1.log /tmp/cf_tunnel.log /tmp/cf_quick2.log /tmp/cf_new.log /tmp/cf_final4.log /tmp/cf_final3.log; do
     local url=$(grep -oP 'https://[a-z-]+\.trycloudflare\.com' "$f" 2>/dev/null | tail -1)
     [ -n "$url" ] && echo "$url" && return
   done
@@ -44,9 +44,8 @@ show_status() {
   if [ -n "$URL" ]; then
     echo "  🌐 Live URL:"
     echo "  $URL"
-    echo ""
-    echo "  🦆 DuckDNS : bouzelfa.duckdns.org"
   fi
+  echo "  📖 Stable: https://bouzelfandhifa-jpg.github.io/bouzelfa_ndhifa/"
   echo "═══════════════════════════════════════"
 }
 
@@ -56,6 +55,59 @@ watch() {
     pgrep -f "cloudflared tunnel" > /dev/null 2>&1 || start_tunnel
     sleep 60
   done
+}
+
+update_gh_pages() {
+  local url=$(get_url)
+  [ -z "$url" ] && return 1
+  local tmp="/tmp/gh_pages_update"
+  mkdir -p "$tmp"
+  cat > "$tmp/index.html" << EOF
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>بوزلفة نظيفة</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0faf0;color:#1a1a1a;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+.card{background:#fff;border-radius:16px;padding:40px 24px;max-width:400px;width:100%;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+h1{color:#2d7d46;font-size:1.5rem;margin-bottom:8px}
+p{color:#555;font-size:1rem;line-height:1.6;margin-bottom:16px}
+.spinner{display:inline-block;width:40px;height:40px;border:4px solid #e8f5e9;border-top-color:#2d7d46;border-radius:50%;animation:spin .8s linear infinite;margin:16px 0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn{display:inline-block;padding:14px 28px;font-size:1.1rem;font-weight:700;background:linear-gradient(135deg,#f57c00,#e65100);color:#fff;border:none;border-radius:16px;cursor:pointer;text-decoration:none;box-shadow:0 4px 14px rgba(245,124,0,.35)}
+.url-display{font-size:.75rem;color:#999;word-break:break-all;margin-top:12px}
+.footer{color:#999;font-size:.7rem;margin-top:24px}
+</style></head>
+<body>
+<div class="card">
+<h1>بوزلفة نظيفة</h1><p>بلّغ عن بقعة تحتاج عناية في وقتها</p>
+<div class="spinner"></div><p>جاري التوجيه إلى المنصة...</p>
+<a id="link" href="$url" class="btn">انتقل إلى المنصة</a>
+<p class="url-display">$url</p>
+<p class="footer">بوزلفة نظيفة — تطوّع من أجل بيئة أنظف</p>
+</div>
+<script>setTimeout(function(){window.location.href="$url"},1500)</script>
+</body>
+</html>
+EOF
+  cd "$DIR"
+  git fetch origin gh-pages 2>/dev/null
+  if git show-ref --verify refs/heads/gh-pages >/dev/null 2>&1; then
+    git checkout gh-pages 2>/dev/null
+  else
+    git checkout -b gh-pages 2>/dev/null
+  fi
+  cp "$tmp/index.html" index.html
+  git add index.html
+  if git diff --cached --quiet; then
+    echo "✅ gh-pages already up to date"
+  else
+    git commit -m "update redirect: $url"
+    git push origin gh-pages -f
+    echo "✅ gh-pages updated"
+  fi
+  git checkout main 2>/dev/null
+  rm -rf "$tmp"
 }
 
 share() {
@@ -70,7 +122,7 @@ share() {
   echo "════════════════════════════════╗"
   echo "                                 "
   echo "  🌐 $URL"
-  echo "  🦆 bouzelfa.duckdns.org"
+  echo "  📖 https://bouzelfandhifa-jpg.github.io/bouzelfa_ndhifa/"
   echo "                                 "
   echo "  📸 بلّغ عن بقعة تحتاج عناية"
   echo "  🤝 معًا نبني بيئة أنظف"
@@ -84,6 +136,9 @@ case "${1:-start}" in
     pkill -f "cloudflared tunnel" 2>/dev/null
     start_server
     start_tunnel
+    echo ""
+    echo "⟳ Updating gh-pages redirect..."
+    update_gh_pages
     show_status
     ;;
   stop)
@@ -100,14 +155,18 @@ case "${1:-start}" in
   share|qr)
     share
     ;;
+  update)
+    update_gh_pages
+    ;;
   watch)
     shift
     start_server
     start_tunnel
+    update_gh_pages
     watch
     ;;
   *)
-    echo "Usage: $0 {start|stop|status|url|share|watch}"
+    echo "Usage: $0 {start|stop|status|url|share|watch|update}"
     exit 1
     ;;
 esac
