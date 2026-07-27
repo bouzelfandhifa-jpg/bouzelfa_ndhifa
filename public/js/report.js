@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id)
-const photoInput = $('photoInput')
+const cameraInput = $('cameraInput')
 const galleryInput = $('galleryInput')
 const cameraBtn = $('cameraBtn')
 const galleryBtn = $('galleryBtn')
@@ -37,10 +37,25 @@ function getHeroId() {
 
 getHeroId()
 
-cameraBtn.addEventListener('click', () => photoInput.click())
+async function loadHeroStars() {
+  try {
+    const res = await fetch(`/api/stars/${heroId}`)
+    const data = await res.json()
+    const badge = $('heroBadge')
+    if (data.total_stars > 0) {
+      const extra = document.createElement('span')
+      extra.style.cssText = 'font-size:.7rem;color:#92400e;margin-right:auto'
+      extra.textContent = '⭐' + data.total_stars
+      badge.appendChild(extra)
+    }
+  } catch (e) {}
+}
+loadHeroStars()
+
+cameraBtn.addEventListener('click', () => cameraInput.click())
 galleryBtn.addEventListener('click', () => galleryInput.click())
 
-photoInput.addEventListener('change', handleFileSelect)
+cameraInput.addEventListener('change', handleFileSelect)
 galleryInput.addEventListener('change', handleFileSelect)
 
 function handleFileSelect(e) {

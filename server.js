@@ -20,10 +20,23 @@ db.exec(`
     address TEXT DEFAULT '',
     status TEXT DEFAULT 'pending',
     hero_id TEXT DEFAULT '',
+    progress INTEGER DEFAULT 0,
+    stars INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
   )
 `)
 try { db.exec("ALTER TABLE reports ADD COLUMN hero_id TEXT DEFAULT ''") } catch (e) {}
+try { db.exec("ALTER TABLE reports ADD COLUMN progress INTEGER DEFAULT 0") } catch (e) {}
+try { db.exec("ALTER TABLE reports ADD COLUMN stars INTEGER DEFAULT 0") } catch (e) {}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS citizens (
+    hero_id TEXT PRIMARY KEY,
+    total_stars INTEGER DEFAULT 0,
+    total_reports INTEGER DEFAULT 0,
+    last_active TEXT DEFAULT (datetime('now'))
+  )
+`)
 
 const storage = multer.diskStorage({
   destination: path.join(__dirname, 'uploads'),
@@ -121,6 +134,59 @@ app.get('/api/reports/stats', (req, res) => {
   const stats = { pending: 0, in_progress: 0, resolved: 0 }
   rows.forEach(r => { stats[r.status] = r.count })
   res.json(stats)
+})
+
+app.get('/api/feed', (req, res) => {
+  const { page = 1, limit = 12 } = req.query
+  const offset = (Number(page) - 1) * Number(limit)
+  const total = db.prepare("SELECT COUNT(*) as t FROM reports").get()?.t || 0
+  const rows = db.prepare(
+    "SELECT id, hero_id, photo, description, lat, lng, address, status, progress, stars, created_at FROM reports ORDER BY created_at DESC LIMIT ? OFFSET ?"
+  ).all(Number(limit), offset)
+  res.json({ reports: rows, total, page: Number(page) })
+})
+
+app.patch('/api/reports/:id/progress', (req, res) => {
+  const { progress } = req.body
+  const p = Math.min(100, Math.max(0, parseInt(progress) || 0))
+  const report = db.prepare("SELECT * FROM reports WHERE id = ?").get(req.params.id)
+  if (!report) return res.status(404).json({ error: 'البلاغ غير موجود' })
+  db.prepare("UPDATE reports SET progress = ? WHERE id = ?").run(p, req.params.id)
+  let stars = 0
+  if (p >= 100) {
+    db.prepare("UPDATE reports SET status = 'resolved', progress = 100, stars = 5 WHERE id = ?").run(req.params.id)
+    stars = 5
+    const hero = report.hero_id
+    if (hero) {
+      db.prepare(
+        "INSERT INTO citizens (hero_id, total_stars, total_reports, last_active) VALUES (?, ?, 1, datetime('now')) ON CONFLICT(hero_id) DO UPDATE SET total_stars = total_stars + ?, total_reports = total_reports + 1, last_active = datetime('now')"
+      ).run(hero, stars, stars)
+    }
+  } else {
+    db.prepare("UPDATE reports SET status = 'in_progress' WHERE id = ? AND status = 'pending'").run(req.params.id)
+  }
+  res.json({ success: true, progress: p, stars, hero_id: report.hero_id })
+})
+
+app.get('/api/stars/:hero_id', (req, res) => {
+  const hero = req.params.hero_id.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 12)
+  if (!hero) return res.json({ hero_id: '', total_stars: 0, total_reports: 0 })
+  const citizen = db.prepare("SELECT * FROM citizens WHERE hero_id = ?").get(hero)
+  const resolved = db.prepare("SELECT COUNT(*) as c FROM reports WHERE hero_id = ? AND status = 'resolved'").get(hero)?.c || 0
+  res.json({
+    hero_id: hero,
+    total_stars: citizen?.total_stars || 0,
+    total_reports: citizen?.total_reports || 0,
+    resolved_reports: resolved
+  })
+})
+
+app.get('/api/leaderboard', (req, res) => {
+  const citizens = db.prepare("SELECT * FROM citizens ORDER BY total_stars DESC LIMIT 20").all()
+  const totalStars = db.prepare("SELECT COALESCE(SUM(total_stars), 0) as s FROM citizens").get()?.s || 0
+  const totalReports = db.prepare("SELECT COUNT(*) as c FROM reports").get()?.c || 0
+  const resolvedReports = db.prepare("SELECT COUNT(*) as c FROM reports WHERE status = 'resolved'").get()?.c || 0
+  res.json({ citizens, totalStars, totalReports, resolvedReports })
 })
 
 app.listen(PORT, () => {
