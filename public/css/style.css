@@ -103,6 +103,20 @@ footer { margin-top: 32px; color: var(--text-light); font-size: .75rem; }
 }
 .message-body strong { color: var(--orange-dark); }
 
+/* ===== HERO BADGE ===== */
+.hero-badge {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 2px solid #f59e0b;
+  border-radius: 12px; padding: 10px 16px; margin-bottom: 20px;
+  font-size: .95rem; font-weight: 600; color: #92400e;
+  box-shadow: 0 2px 8px rgba(245,158,11,.2);
+}
+.hero-icon { font-size: 1.4rem; }
+.hero-badge strong { font-size: 1.05rem; letter-spacing: 1px; }
+.hero-success { font-size: .95rem; color: var(--text-light); margin-bottom: 8px; }
+.hero-success strong { color: var(--orange); letter-spacing: 1px; }
+
 /* ===== PAGE HEADER ===== */
 .page-header {
   display: flex; align-items: center; gap: 10px; margin-bottom: 20px;

@@ -27,7 +27,7 @@ async function loadReports(filter = 'all') {
 function renderReports(reports) {
   const container = document.getElementById('reportList')
   if (!reports.length) {
-    container.innerHTML = '<p class="empty">ما كانش بلاغات</p>'
+    container.innerHTML = '<p class="empty">لا توجد بلاغات</p>'
     return
   }
   container.innerHTML = reports.map(r => `
@@ -35,9 +35,9 @@ function renderReports(reports) {
       <img src="/uploads/${r.photo}" alt="صورة" class="report-photo">
       <div class="report-info">
         <span class="status-badge ${statusMap[r.status].cls}">${statusMap[r.status].label}</span>
-        <p class="report-desc">${r.description || 'ما كتبش وصف'}</p>
+        <p class="report-desc">${r.description || 'بدون وصف'}</p>
         <p class="report-meta">📅 ${r.created_at} · 📍 ${r.address ? r.address.slice(0, 40) + '...' : `${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}`}</p>
-        <p class="report-id-small">🆔 ${r.id}</p>
+        <p class="report-id-small">🆔 ${r.id} ${r.hero_id ? '· 🦸 ' + r.hero_id : ''}</p>
         <div class="report-actions">
           ${r.status === 'pending' ? `<button class="btn-action start" data-id="${r.id}">🔄 باش نتعاملو</button>` : ''}
           ${r.status === 'in_progress' ? `<button class="btn-action done" data-id="${r.id}">✅ منجز</button>` : ''}
@@ -77,7 +77,7 @@ function renderMap(reports) {
     const m = L.circleMarker([r.lat, r.lng], {
       radius: 10, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.8
     }).addTo(map)
-    m.bindPopup(`<b>${r.id}</b><br>${r.description || 'ما كتبش وصف'}<br>${statusMap[r.status].label}`)
+    m.bindPopup(`<b>${r.id}</b>${r.hero_id ? '<br>🦸 ' + r.hero_id : ''}<br>${r.description || 'بدون وصف'}<br>${statusMap[r.status].label}`)
     markers.push(m)
   })
   if (reports.length) {

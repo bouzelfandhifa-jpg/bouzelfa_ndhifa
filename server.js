@@ -19,9 +19,11 @@ db.exec(`
     lng REAL NOT NULL,
     address TEXT DEFAULT '',
     status TEXT DEFAULT 'pending',
+    hero_id TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
   )
 `)
+try { db.exec("ALTER TABLE reports ADD COLUMN hero_id TEXT DEFAULT ''") } catch (e) {}
 
 const storage = multer.diskStorage({
   destination: path.join(__dirname, 'uploads'),
@@ -69,16 +71,17 @@ app.post('/api/reports', upload.single('photo'), (req, res) => {
 
     if (!req.file) return res.status(400).json({ error: 'الصورة مطلوبة' })
     const id = crypto.randomUUID().slice(0, 8)
+    const hero_id = (req.body.hero_id || '').replace(/[^a-zA-Z0-9_]/g, '').slice(0, 12)
     const description = (req.body.description || '').replace(/[<>]/g, '')
     const lat = Math.min(90, Math.max(-90, parseFloat(req.body.lat) || 0))
     const lng = Math.min(180, Math.max(-180, parseFloat(req.body.lng) || 0))
     const address = (req.body.address || '').replace(/[<>]/g, '')
     if (!lat || !lng) return res.status(400).json({ error: 'الموقع غير صحيح' })
     const stmt = db.prepare(
-      'INSERT INTO reports (id, photo, description, lat, lng, address, status) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO reports (id, photo, description, lat, lng, address, status, hero_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     )
-    stmt.run(id, req.file.filename, description, lat, lng, address, 'pending')
-    res.status(201).json({ id, status: 'pending' })
+    stmt.run(id, req.file.filename, description, lat, lng, address, 'pending', hero_id)
+    res.status(201).json({ id, hero_id, status: 'pending' })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'حدث خطأ في الخدمة' })

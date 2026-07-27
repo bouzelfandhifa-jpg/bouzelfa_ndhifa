@@ -18,6 +18,22 @@ const reportIdSpan = document.getElementById('reportId')
 let selectedFile = null
 let map = null
 let marker = null
+let heroId = ''
+
+function getHeroId() {
+  let id = localStorage.getItem('bouzelfa_hero_id')
+  if (!id) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    let rand = ''
+    for (let i = 0; i < 4; i++) rand += chars[Math.floor(Math.random() * chars.length)]
+    id = 'Hero_' + rand
+    localStorage.setItem('bouzelfa_hero_id', id)
+  }
+  heroId = id
+  document.getElementById('heroIdDisplay').textContent = id
+}
+
+getHeroId()
 
 cameraBtn.addEventListener('click', () => photoInput.click())
 galleryBtn.addEventListener('click', () => galleryInput.click())
@@ -40,7 +56,7 @@ function handleFileSelect(e) {
 function getLocation() {
   locationStatus.innerHTML = '<span>⏳ جلب الموقع...</span>'
   if (!navigator.geolocation) {
-    locationStatus.innerHTML = '<span>❌ المتصفح ما يدعمش تحديد الموقع</span>'
+    locationStatus.innerHTML = '<span>❌ المتصفح لا يدعم تحديد الموقع</span>'
     return
   }
   navigator.geolocation.getCurrentPosition(
@@ -55,7 +71,7 @@ function getLocation() {
       checkForm()
     },
     () => {
-      locationStatus.innerHTML = '<span>⚠️ ما قدرناش نجيبو الموقع. تحطّو يدوياً؟</span>'
+      locationStatus.innerHTML = '<span>⚠️ لم نتمكن من تحديد الموقع. يمكنك تعيينه يدوياً؟</span>'
       initMap(36.6833, 10.5833)
     },
     { enableHighAccuracy: true, timeout: 10000 }
@@ -109,6 +125,7 @@ form.addEventListener('submit', async (e) => {
 
   const fd = new FormData()
   fd.append('photo', selectedFile)
+  fd.append('hero_id', heroId)
   fd.append('description', description.value)
   fd.append('lat', latInput.value)
   fd.append('lng', lngInput.value)
@@ -119,15 +136,16 @@ form.addEventListener('submit', async (e) => {
     const data = await res.json()
     if (res.ok) {
       reportIdSpan.textContent = data.id
+      document.getElementById('heroIdSuccess').textContent = data.hero_id || heroId
       successModal.hidden = false
     } else {
-      alert(data.error || 'صرت مشكلة')
+      alert(data.error || 'حدث خطأ')
       submitBtn.disabled = false
       submitText.hidden = false
       submitSpinner.hidden = true
     }
   } catch {
-    alert('⚠️ ما قدرناش نرسلو البلاغ. تحقق من الاتصال.')
+    alert('⚠️ لم نتمكن من إرسال البلاغ. تحقق من الاتصال.')
     submitBtn.disabled = false
     submitText.hidden = false
     submitSpinner.hidden = true
